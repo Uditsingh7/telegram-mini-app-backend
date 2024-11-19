@@ -1,11 +1,13 @@
 const dotenv = require('dotenv');
 const Settings = require('../models/Settings')
+const User = require("../models/User");
+const EarnOpportunity = require("../models/EarnOpportunity")
 
 dotenv.config();
 const axios = require('axios');
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN; // Replace with your actual bot token
-const CHANNEL_USERNAME = '@vectoroad'; // Replace with your actual channel username
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const CHANNEL_USERNAME = '@vectoroad';
 
 const checkMembership = async (req, res) => {
     try {
@@ -49,4 +51,60 @@ const getSettingsConfig = async (req, res) => {
     }
 }
 
-module.exports = { checkMembership, getSettingsConfig };
+const getEarnOpp = async (req, res) => {
+    try {
+        const response = await EarnOpportunity.find({})
+        return res.json(response)
+    }
+    catch (error) {
+        console.error(error)
+        return res.status(500).json({ error: error.message });
+    }
+}
+
+
+
+
+const saveWithdrawalDetails = async (req, res) => {
+    const { userId, method, details } = req.body;
+
+    try {
+        const user = await User.findOne({ userId });
+        if (!user) {
+            return res.json({ success: false, message: "User not found" });
+        }
+
+        // Find if the method already exists
+        const existingMethod = user.withdrawalDetails.find(
+            (withdrawal) => withdrawal.method === method
+        );
+
+        if (existingMethod) {
+            // Update details for the existing method
+            existingMethod.details = details;
+        } else {
+            // Add a new withdrawal method
+            user.withdrawalDetails.push({ method, details });
+        }
+
+        await user.save();
+
+        return res.json({
+            success: true,
+            message: "Withdrawal details saved successfully",
+        });
+    } catch (error) {
+        console.error("Error saving withdrawal details:", error);
+        return res.json({
+            success: false,
+            message: "Failed to save withdrawal details",
+        });
+    }
+};
+
+
+
+
+
+
+module.exports = { checkMembership, getSettingsConfig, getEarnOpp, saveWithdrawalDetails };
