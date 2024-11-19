@@ -10,22 +10,8 @@ const telegramRoutes = require('./routes/telegramRoutes');
 
 const app = express();
 
-// Replace 'your-amplify-domain' with your Amplify app's domain
-const allowedOrigins = ['https://main.d1hk4bpdroppqg.amplifyapp.com/'];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true, // Allow cookies or auth headers
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 
 // Middleware
 app.use(express.json());
