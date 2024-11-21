@@ -68,6 +68,15 @@ const getEarnOpp = async (req, res) => {
 const saveWithdrawalDetails = async (req, res) => {
     const { userId, method, details } = req.body;
 
+    // Validate method
+    const validMethods = ["UPI", "CRYPTO"];
+    if (!validMethods.includes(method)) {
+        return res.json({
+            success: false,
+            message: "Invalid withdrawal method",
+        });
+    }
+
     try {
         const user = await User.findOne({ userId });
         if (!user) {
@@ -101,6 +110,7 @@ const saveWithdrawalDetails = async (req, res) => {
         });
     }
 };
+
 
 
 

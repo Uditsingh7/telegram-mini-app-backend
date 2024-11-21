@@ -5,6 +5,7 @@ const taskSchema = new mongoose.Schema({
     description: String,
     channelId: String,
     points: Number,
+    channelLink: String,
     verifiedUsers: [{ type: String }], // Array of userIds who completed this task
 });
 

@@ -34,7 +34,7 @@ async function verifyMembership(userId, channelId) {
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getChatMember`,
       {
         params: {
-          chat_id: '@vectoroad',
+          chat_id: channelId,
           user_id: userId,
         },
       }
@@ -66,6 +66,7 @@ exports.claimTask = async (req, res) => {
     }
 
     const { channelId, points, channelLink } = task;
+    console.log(channelId, points, channelLink)
 
     // Fetch user data
     const user = await User.findOne({ userId });
@@ -87,6 +88,7 @@ exports.claimTask = async (req, res) => {
     const isMember = await verifyMembership(userId, channelId); // Assuming this function exists
     console.log(isMember)
     if (!isMember) {
+
       return res.status(200).json({
         message: "Please join the channel to claim this task.",
         redirectUrl: channelLink,
@@ -99,7 +101,7 @@ exports.claimTask = async (req, res) => {
     await user.save(); // Save changes to the database
     console.log("Task completed successfully!")
 
-    return res.status(200).json({
+    return res.status(201).json({
       message: "Task completed successfully!",
       points: user.balance,
     });

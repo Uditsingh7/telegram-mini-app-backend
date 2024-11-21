@@ -1,7 +1,6 @@
 const app = require('./app');
 const connectDB = require('./config/db');
 const dotenv = require('dotenv');
-const cors = require('cors');
 const TelegramBot = require('node-telegram-bot-api');
 const Referral = require('./models/Referral')
 const Settings = require('./models/Settings')
@@ -54,6 +53,7 @@ bot.onText(/\/start(?: (.*))?/, async (msg, match) => {
             referrer.referrals += 1;
             const referralPoints = referPoints?.value || 5; // Points awarded for each referral
             referrer.balance += referralPoints;
+            referrer.referBalance += referPoints;
             await referrer.save();
 
             // Notify the referrer about the successful referral

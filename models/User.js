@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
     balance: { type: Number, default: 0 }, // General balance for referrals, tasks, etc.
+    referBalance: { type: Number, default: 0 }, // General balance for referrals, tasks, etc.
     cryptoBalances: { // New field to store currency-specific balances
         type: Map,
         of: Number, // Each key-value pair stores a currency and its respective balance
@@ -25,7 +26,7 @@ const userSchema = new mongoose.Schema({
             },
         },
     ],
-    completedTasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
+    completedTasks: [{ type: String, ref: 'Task' }],
     role: { type: String, default: 'user', enum: ['user', 'admin'] },
 });
 

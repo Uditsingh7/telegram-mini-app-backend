@@ -28,6 +28,31 @@ exports.createOrUpdateUser = async (req, res) => {
   }
 };
 
+exports.fetchUserById = async (req, res) => {
+  const { userId } = req.params; // Assuming userId is provided as a route parameter
+
+
+  try {
+    // Look for the user in the database by userId
+    const user = await User.findOne({ id: userId });
+    console.log("inside fetch yser details", user)
+
+    if (!user) {
+      // User not found, send a 404 response
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // Respond with the user data
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Failed to fetch user data.' });
+  }
+};
+
+
+
+
 
 exports.savePaymentDetails = async (req, res) => {
   const { userId, exchangeId, cryptoAddress, bankDetails } = req.body;
