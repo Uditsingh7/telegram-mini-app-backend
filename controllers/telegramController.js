@@ -7,7 +7,6 @@ dotenv.config();
 const axios = require('axios');
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const CHANNEL_USERNAME = '@vectoroad';
 
 const checkMembership = async (req, res) => {
     try {
@@ -16,10 +15,11 @@ const checkMembership = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ error: 'User ID is required' });
         }
-        console.log(`Checking membership for user ID: ${userId} in channel: ${CHANNEL_USERNAME}`);
+        const settings = await Settings.findOne({ key: "AppMetaData" })
+        console.log(`Checking membership for user ID: ${userId} in channel: ${settings.value.channelUsername}`);
         const response = await axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getChatMember`, {
             params: {
-                chat_id: CHANNEL_USERNAME, // Use channel username or chat ID
+                chat_id: settings.value.channelUsername, // Use channel username or chat ID
                 user_id: userId,
             },
         });
@@ -33,7 +33,7 @@ const checkMembership = async (req, res) => {
         console.log("isMember: ", isMember)
         return res.json({ isMember });
     } catch (error) {
-        console.error(error)
+        console.error(error.message)
         return res.status(500).json({ error: error.message });
     }
 };
