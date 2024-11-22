@@ -34,11 +34,13 @@ exports.fetchUserById = async (req, res) => {
 
   try {
     // Look for the user in the database by userId
-    const user = await User.findOne({ userId });
+    console.log("Type of userId from params:", typeof userId);
+    const user = await User.findOne({ userId: userId.toString() });
     console.log("inside fetch yser details", userId, user)
 
     if (!user) {
       // User not found, send a 404 response
+      console.log("User not found.")
       return res.status(404).json({ error: 'User not found.' });
     }
 
