@@ -3,6 +3,7 @@ const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 const TelegramBot = require('node-telegram-bot-api');
 const Referral = require('./models/Referral')
+const User = require('./models/User');
 const Settings = require('./models/Settings')
 
 
@@ -49,11 +50,12 @@ bot.onText(/\/start(?: (.*))?/, async (msg, match) => {
 
           // Update referrer data
           const referrer = await User.findOne({ userId: referrerId });
+          console.log(referrer)
           if (referrer) {
             referrer.referrals += 1;
             const referralPoints = referPoints?.value || 5; // Points awarded for each referral
             referrer.balance += referralPoints;
-            referrer.referBalance += referPoints;
+            referrer.referBalance += referralPoints;
             await referrer.save();
 
             // Notify the referrer about the successful referral
