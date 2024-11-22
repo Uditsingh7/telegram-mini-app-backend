@@ -35,7 +35,7 @@ exports.fetchUserById = async (req, res) => {
   try {
     // Look for the user in the database by userId
     const user = await User.findOne({ userId });
-    console.log("inside fetch yser details", user)
+    console.log("inside fetch yser details", userId, user)
 
     if (!user) {
       // User not found, send a 404 response
@@ -49,8 +49,6 @@ exports.fetchUserById = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch user data.' });
   }
 };
-
-
 
 
 
