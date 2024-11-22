@@ -59,7 +59,7 @@ bot.onText(/\/start(?: (.*))?/, async (msg, match) => {
             await referrer.save();
 
             // Notify the referrer about the successful referral
-            bot.sendMessage(referrerId, `🎉 You've earned ${referralPoints} points for referring a new user! Your new balance is ${referrer.balance} points.`);
+            bot.sendMessage(referrerId, `🎉 You've earned ₹${referralPoints} for referring a new user! Your new balance is ₹${referrer.balance}.`);
           }
         }
       }
