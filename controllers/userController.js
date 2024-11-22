@@ -34,7 +34,7 @@ exports.fetchUserById = async (req, res) => {
 
   try {
     // Look for the user in the database by userId
-    const user = await User.findOne({ id: userId });
+    const user = await User.findOne({ userId });
     console.log("inside fetch yser details", user)
 
     if (!user) {
