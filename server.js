@@ -73,13 +73,11 @@ bot.onText(/\/start(?: (.*))?/, async (msg, match) => {
 
     const channelLogo = await Settings.findOne({ key: 'channelLogoImage' })
     const welcomeMessage = `
-          👋 Hello! 
-
-Welcome to TrueMoj 🐶 
+          👋What can this bot do ? 
 
 Frustrated with fake tokens and bogus launches?  
 
-Want to earn real money with 100% guarantee ?  
+Want to earn real money with 100% guarantee ?
 
 You're in the right place.  
 
