@@ -1,5 +1,26 @@
 // controllers/userController.js
+dotenv.config();
 const User = require('../models/User');
+
+
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = "6760070620";
+// Function to send a message to Telegram
+const sendTelegramMessage = async (message) => {
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const params = {
+      chat_id: TELEGRAM_CHAT_ID,
+      text: message,
+      parse_mode: 'Markdown', 
+    };
+    await axios.post(url, params);
+    console.log('Telegram message sent successfully.');
+  } catch (error) {
+    console.error('Failed to send Telegram message:', error);
+  }
+};
+
 
 // Create or Update User
 exports.createOrUpdateUser = async (req, res) => {
@@ -18,6 +39,13 @@ exports.createOrUpdateUser = async (req, res) => {
         lastName,
       });
       await user.save();
+      // Send a Telegram message for the new user
+      await sendTelegramMessage(`
+        📥 *New User Created!*
+        👤 *Username:* [${username || 'N/A'}](https://t.me/${username || ''})
+        🆔 *User ID:* ${userId}
+        🧑 *Name:* ${firstName || 'N/A'} ${lastName || 'N/A'}
+              `);
     }
 
     // Respond with user data (existing or newly created)
