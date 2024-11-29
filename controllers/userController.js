@@ -1,4 +1,7 @@
 // controllers/userController.js
+const dotenv = require('dotenv');
+
+
 dotenv.config();
 const User = require('../models/User');
 
