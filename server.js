@@ -105,3 +105,152 @@ TrueMoj 🐶 - Earn for real, no gimmicks, no tokens
     bot.sendMessage(chatId, "⚠️ There was an error setting up your account. Please try again later.");
   }
 });
+
+
+const messageStates = new Map();
+
+// Broadcast command handler
+bot.onText(/\/broadcast/, async (msg) => {
+    const chatId = msg.chat.id;
+    
+    try {
+        // 1. Verify admin
+        const user = await User.findOne({ userId: chatId });
+        if (!user || user.role !== 'admin') {
+            return bot.sendMessage(chatId, 'Unauthorized: Only admins can broadcast messages');
+        }
+
+        // 2. Set state to waiting for message
+        messageStates.set(chatId, { state: 'WAITING_FOR_MESSAGE' });
+        
+        // 3. Ask for message
+        await bot.sendMessage(chatId, 'Please send the message you want to broadcast');
+    } catch (error) {a
+        console.error('Error in broadcast command:', error);
+        bot.sendMessage(chatId, 'Sorry, something went wrong');
+    }
+});
+
+// Message handler for broadcast flow
+bot.on('message', async (msg) => {
+    const chatId = msg.chat.id;
+    const userState = messageStates.get(chatId);
+
+    // Only process if user is in broadcast flow
+    if (!userState) return;
+
+    try {
+        switch (userState.state) {
+            case 'WAITING_FOR_MESSAGE':
+                // Store message and ask for confirmation
+                messageStates.set(chatId, {
+                    state: 'WAITING_FOR_CONFIRMATION',
+                    message: msg.text
+                });
+
+                // Get total users count
+                const totalUsers = await User.countDocuments();
+                
+                await bot.sendMessage(
+                    chatId,
+                    `Preview of your message:\n\n${msg.text}\n\n` +
+                    `This will be sent to ${totalUsers} users.\n` +
+                    'Send "Yes" to confirm or "No" to cancel.'
+                );
+                break;
+
+            case 'WAITING_FOR_CONFIRMATION':
+                const response = msg.text.toLowerCase();
+                if (response === 'yes') {
+                    await bot.sendMessage(chatId, 'Broadcasting message...');
+                    
+                    // Start broadcasting
+                    const result = await broadcastMessage(
+                        chatId,
+                        messageStates.get(chatId).message
+                    );
+
+                    // Send final report
+                    await bot.sendMessage(
+                        chatId,
+                        'Broadcast completed!\n' +
+                        `Total users: ${result.totalUsers}\n` +
+                        `Successfully sent: ${result.successCount}\n` +
+                        `Failed: ${result.failedCount}`
+                    );
+
+                } else if (response === 'no') {
+                    await bot.sendMessage(chatId, 'Broadcast cancelled.');
+                } else {
+                    await bot.sendMessage(chatId, 'Please send "Yes" to confirm or "No" to cancel.');
+                    return; // Keep the state
+                }
+                
+                // Clear state after completion or cancellation
+                messageStates.delete(chatId);
+                break;
+        }
+    } catch (error) {
+        console.error('Error in message handler:', error);
+        await bot.sendMessage(chatId, 'Sorry, something went wrong');
+        messageStates.delete(chatId);
+    }
+});
+
+// Broadcasting function
+const broadcastMessage = async (senderUserId, message) => {
+    try {
+        // Fetch all users
+        const allUsers = await User.find({}, { userId: 1 });
+        const totalUsers = allUsers.length;
+
+        // Process in batches
+        const BATCH_SIZE = 50;
+        const DELAY_BETWEEN_BATCHES = 2000; // 2 seconds
+        let successCount = 0;
+        let failedCount = 0;
+        const failedIds = [];
+
+        // Split users into batches
+        for (let i = 0; i < allUsers.length; i += BATCH_SIZE) {
+            const batch = allUsers.slice(i, i + BATCH_SIZE);
+            
+            // Process each batch
+            await Promise.all(
+                batch.map(async (user) => {
+                    try {
+                        await bot.sendMessage(user.userId, message);
+                        successCount++;
+                    } catch (error) {
+                        failedCount++;
+                        failedIds.push(user.userId);
+                        console.error(`Failed to send to ${user.userId}:`, error.message);
+                    }
+                })
+            );
+
+            // Send progress update to admin
+            const progress = Math.min(100, Math.round(((i + BATCH_SIZE) / totalUsers) * 100));
+            await bot.sendMessage(
+                senderUserId,
+                `Progress: ${progress}%\nSuccessful: ${successCount}\nFailed: ${failedCount}`
+            );
+
+            // Delay between batches to avoid rate limiting
+            if (i + BATCH_SIZE < allUsers.length) {
+                await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES));
+            }
+        }
+
+        return {
+            totalUsers,
+            successCount,
+            failedCount,
+            failedIds
+        };
+
+    } catch (error) {
+        console.error('Broadcast error:', error);
+        throw error;
+    }
+};
